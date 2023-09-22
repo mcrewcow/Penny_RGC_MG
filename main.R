@@ -37,7 +37,7 @@ s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, s
 s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
 VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
 
-s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 10000 & nFeature_RNA > 600 & nFeature_RNA < 4000 & percent.mt < 15 & percent.rb < 15)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
 
 s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
 
@@ -58,19 +58,133 @@ RDoublet <- function(tmp){
   return (tmp) 
 }
 
-remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
 library(DoubletFinder)
 
-levi <- RDoublet(levi)
-levi <- subset(levi, subset = DF.classifications_0.25_0.04_241 == 'Singlet') #remove the doublets
-levi <- subset(levi, subset = DF.classifications_0.25_0.04_191 == 'Singlet') #remove the doublets
-AMD1 <- subset(AMD1, cells = colnames(AMD1)[which(AMD1[[]][13] == 'Singlet')])
-AMD1 <- subset(AMD1, cells = colnames(AMD1)[which(AMD1[[]][13] == 'Singlet')])
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
 
 s1 <- ProcessSeu(s1)
 
 s1_final <- s1
+s1_final$condition <- 's1'
+s1_final$group <- 'Naive'
+s1_final$celltype <- 'Microglia'
 
-#repeat for early timepoint
+s1 <- Read10X_h5("C://Bioinf/Penny_project/filtered_feature_bc_matrix_s2.h5", use.names = TRUE, unique.features = TRUE)
+s1 <- CreateSeuratObject(counts = s1, project = "s1", min.cells = 3, min.features = 200)
+s1 [["percent.rb"]] <- PercentageFeatureSet(s1 , pattern = "^Rps|^Rpl|^Mrps|^Mrpl", assay = 'RNA')
+s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, set.ident = FALSE)
+s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
+VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
+s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
+s1 <- ProcessSeu(s1)
 
-levi_early <- levi
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
+
+s1 <- ProcessSeu(s1)
+
+s2_final <- s1
+s2_final$condition <- 's2'
+s2_final$group <- 'Naive'
+s2_final$celltype <- 'RGC'
+
+s1 <- Read10X_h5("C://Bioinf/Penny_project/filtered_feature_bc_matrix_s3.h5", use.names = TRUE, unique.features = TRUE)
+s1 <- CreateSeuratObject(counts = s1, project = "s1", min.cells = 3, min.features = 200)
+s1 [["percent.rb"]] <- PercentageFeatureSet(s1 , pattern = "^Rps|^Rpl|^Mrps|^Mrpl", assay = 'RNA')
+s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, set.ident = FALSE)
+s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
+VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
+s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
+s1 <- ProcessSeu(s1)
+
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
+
+s1 <- ProcessSeu(s1)
+
+s3_final <- s1
+s3_final$condition <- 's3'
+s3_final$group <- 'Vehicle'
+s3_final$celltype <- 'Microglia'
+
+s1 <- Read10X_h5("C://Bioinf/Penny_project/filtered_feature_bc_matrix_s4.h5", use.names = TRUE, unique.features = TRUE)
+s1 <- CreateSeuratObject(counts = s1, project = "s1", min.cells = 3, min.features = 200)
+s1 [["percent.rb"]] <- PercentageFeatureSet(s1 , pattern = "^Rps|^Rpl|^Mrps|^Mrpl", assay = 'RNA')
+s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, set.ident = FALSE)
+s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
+VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
+s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
+s1 <- ProcessSeu(s1)
+
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
+
+s1 <- ProcessSeu(s1)
+
+s4_final <- s1
+s4_final$condition <- 's4'
+s4_final$group <- 'Vehicle'
+s4_final$celltype <- 'RGC'
+
+s1 <- Read10X_h5("C://Bioinf/Penny_project/filtered_feature_bc_matrix_s5.h5", use.names = TRUE, unique.features = TRUE)
+s1 <- CreateSeuratObject(counts = s1, project = "s1", min.cells = 3, min.features = 200)
+s1 [["percent.rb"]] <- PercentageFeatureSet(s1 , pattern = "^Rps|^Rpl|^Mrps|^Mrpl", assay = 'RNA')
+s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, set.ident = FALSE)
+s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
+VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
+s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
+s1 <- ProcessSeu(s1)
+
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
+
+s1 <- ProcessSeu(s1)
+
+s5_final <- s1
+s5_final$condition <- 's5'
+s5_final$group <- 'BA'
+s5_final$celltype <- 'Microglia'
+
+s1 <- Read10X_h5("C://Bioinf/Penny_project/filtered_feature_bc_matrix_s6.h5", use.names = TRUE, unique.features = TRUE)
+s1 <- CreateSeuratObject(counts = s1, project = "s1", min.cells = 3, min.features = 200)
+s1 [["percent.rb"]] <- PercentageFeatureSet(s1 , pattern = "^Rps|^Rpl|^Mrps|^Mrpl", assay = 'RNA')
+s1 <- CellCycleScoring(s1, s.features = m.s.genes, g2m.features = m.g2m.genes, set.ident = FALSE)
+s1[["percent.mt"]] <- PercentageFeatureSet(s1, pattern = "^mt-")
+VlnPlot(s1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", 'percent.rb'), ncol = 4)
+s1 <- subset(s1, subset = nCount_RNA > 300 & nCount_RNA < 30000 & nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20 & percent.rb < 30)
+s1 <- ScaleData(s1, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt', "percent.rb","S.Score","G2M.Score"))
+s1 <- ProcessSeu(s1)
+
+s1 <- RDoublet(s1)
+
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][12] == 'Singlet')])
+s1 <- subset(s1, cells = colnames(s1)[which(s1[[]][13] == 'Singlet')])
+
+s1 <- ProcessSeu(s1)
+
+s6_final <- s1
+s6_final$condition <- 's6'
+s6_final$group <- 'BA'
+s6_final$celltype <- 'RGC'
+
+SaveH5Seurat(s1_final, 'C://Bioinf/Penny_project/s1.h5Seurat')
+SaveH5Seurat(s2_final, 'C://Bioinf/Penny_project/s2.h5Seurat')
+SaveH5Seurat(s3_final, 'C://Bioinf/Penny_project/s3.h5Seurat')
+SaveH5Seurat(s4_final, 'C://Bioinf/Penny_project/s4.h5Seurat')
+SaveH5Seurat(s5_final, 'C://Bioinf/Penny_project/s5.h5Seurat')
+SaveH5Seurat(s6_final, 'C://Bioinf/Penny_project/s6.h5Seurat')
