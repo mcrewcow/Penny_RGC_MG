@@ -188,3 +188,80 @@ SaveH5Seurat(s3_final, 'C://Bioinf/Penny_project/s3.h5Seurat')
 SaveH5Seurat(s4_final, 'C://Bioinf/Penny_project/s4.h5Seurat')
 SaveH5Seurat(s5_final, 'C://Bioinf/Penny_project/s5.h5Seurat')
 SaveH5Seurat(s6_final, 'C://Bioinf/Penny_project/s6.h5Seurat')
+
+
+integration_list <- list(object_names)
+features <- SelectIntegrationFeatures(object.list = integration_list)
+data.anchors <- FindIntegrationAnchors(object.list = integration_list, anchor.features = features)
+data.combined <- IntegrateData(anchorset = data.anchors)
+
+ProcessInt <- function(data.integrated){
+data.integrated <- ScaleData(data.integrated, verbose = FALSE)
+data.integrated <- RunPCA(data.integrated, npcs = 30, verbose = FALSE)
+data.integrated <- FindNeighbors(data.integrated, dims = 1:20)
+data.integrated <- FindNeighbors(data.integrated, dims = 1:20)
+data.integrated <- FindClusters(data.integrated, resolution = 0.5)
+data.integrated <- FindClusters(data.integrated, resolution = 0.5)
+data.integrated <- RunUMAP(data.integrated, reduction = "pca", dims = 1:20)
+data.integrated <- RunUMAP(data.integrated, reduction = "pca", dims = 1:20)
+data.integrated <- RunTSNE(data.integrated,  dims.use = 1:20 )
+data.integrated <- RunTSNE(data.integrated,  dims.use = 1:20 )
+}
+
+data.combined <- ProcessInt(data.combined)
+data.combined.markers <- FindAllMarkers(data.combined, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+Dimplot(penny)
+combined_new <- subset(data.combined, ident = c('7'), invert = T)
+combined_new <- subset(combined_new, ident = c('8'), invert = T)
+combined_new <- subset(combined_new, ident = c('13'), invert = T)
+DimPlot(combined_new)
+ProcessSeu <- function(Seurat){
+Seurat <- NormalizeData(Seurat)
+Seurat <- FindVariableFeatures(Seurat, selection.method = "vst", nfeatures = 2000)
+Seurat <- ScaleData(Seurat, verbose = T, vars.to.regress = c('nCount_RNA', 'nFeature_RNA', 'percent.mt',"percent.rb","S.Score","G2M.Score"))
+Seurat <- RunPCA(Seurat)
+Seurat <- FindNeighbors(Seurat, dims = 1:20)
+Seurat <- FindClusters(Seurat, resolution = 0.5)
+Seurat <- RunUMAP(Seurat, dims = 1:20)
+Seurat <- RunTSNE(Seurat,  dims.use = 1:20 )
+DimPlot(object = Seurat, reduction = "umap")
+return (Seurat)
+}
+combined_new <- ProcessSeu(combined_new)
+DimPlot(combined_new)
+
+
+combined_new <- RenameIdents(combined_new,
+                             '0' = 'Macrophage',
+                             '1' = 'Muller glia',
+                             '2' = 'Muller glia',
+                             '3' = 'Interneuron',
+                             '4' = 'Muller glia',
+                             '5' = 'Rod',
+                             '6' = 'Rod',
+                             '7' = 'Endothelia',
+                             '8' = 'Muller glia',
+                             '9' = 'Pericyte',
+                             '10' = 'Microglia',
+                             '11' = 'Rod',
+                             '12' = 'Interneuron',
+                             '13' = 'Macrophages resolution phase',
+                             '14' = 'Interneuron',
+                             '15' = 'Interneuron',
+                             '16' = 'RGC ?',
+                             '17' = 'Macrophage',
+                             '18' = 'Microglia',
+                             '19' = 'Interneuron',
+                             '20' = 'RGC ?',
+                             '21' = 'Macrophages resolution phase',
+                             '22' = 'Endothelia',
+                             '23' = 'B',
+                             '24' = 'Cone')
+
+combined_new$EK_anno <- combined_new@active.ident
+penny$EK_anno <- combined_new$EK_anno
+penny$EK_anno[is.na(penny$EK_anno)] <- 'Microglia'
+DimPlot(penny, group.by = 'EK_anno')
+SaveH5Seurat(penny, 'C://Bioinf/Penny_project/combined_EKanno.h5Seurat')
+
